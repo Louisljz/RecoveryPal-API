@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import FileResponse
 import uvicorn
 import json
 
@@ -48,6 +49,16 @@ async def generate_prompts(mood: int, conversation: str):
     response = inference(model_url, inputs, {'temperature': 0})
     data = json.loads(extract_json(response.text.raw))
     return data
+
+@app.post("/describe-art/")
+async def describe_art(file: UploadFile = File(...)):
+    image = await file.read()
+    model_url = "https://clarifai.com/openai/chat-completion/models/openai-gpt-4-vision"
+    prompt = "Infer the person's feelings from the given drawing"
+    inputs = Inputs.get_multimodal_input(input_id="", image_bytes=image, raw_text=prompt)
+    data = inference(model_url, inputs, {'temperature': 0})
+    return {'meaning': data.text.raw}
+
 
 
 if __name__ == "__main__":

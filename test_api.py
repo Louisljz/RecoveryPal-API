@@ -3,11 +3,11 @@ import requests
 def post_feelings(question, answer):
     global conversation
     conversation +=  f'Question: {question}\n Answer: {answer}\n '
-    response = requests.post(f'http://127.0.0.1:8000/process-feelings?conversation={conversation}')
+    response = requests.post(f'https://recovery-pal-api-n6wffmw6za-uc.a.run.app/process-feelings?conversation={conversation}')
     return response.json()
 
 def create_prompts(mood, conversation):
-    response = requests.post(f'http://127.0.0.1:8000/generate-prompts?mood={mood}&conversation={conversation}')
+    response = requests.post(f'https://recovery-pal-api-n6wffmw6za-uc.a.run.app/generate-prompts?mood={mood}&conversation={conversation}')
     return response.json()
 
 conversation = ''
