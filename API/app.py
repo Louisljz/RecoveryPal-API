@@ -1,7 +1,9 @@
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 import uvicorn
 import json
+import base64
+import io
 
 from clarifai.client.model import Model
 from clarifai.client.input import Inputs
@@ -54,12 +56,20 @@ async def generate_prompts(mood: int, conversation: str):
 async def describe_art(file: UploadFile = File(...)):
     image = await file.read()
     model_url = "https://clarifai.com/openai/chat-completion/models/openai-gpt-4-vision"
-    prompt = "Infer the person's feelings from the given drawing"
+    prompt = "Infer the person's feelings from the given drawing. Write in one sentence"
     inputs = Inputs.get_multimodal_input(input_id="", image_bytes=image, raw_text=prompt)
     data = inference(model_url, inputs, {'temperature': 0})
     return {'meaning': data.text.raw}
 
+@app.post("/text-to-speech/")
+async def text_to_speech(text: str):
+    model_url = 'https://clarifai.com/openai/tts/models/openai-tts-1'
+    inputs = Inputs.get_text_input(input_id="", raw_text=text)
+    data = inference(model_url, inputs, {'voice': 'shimmer', 'speed': 1})
 
+    audio_buffer = io.BytesIO(data.audio.base64)
+    audio_buffer.seek(0)
+    return StreamingResponse(audio_buffer, media_type="audio/mp3")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
