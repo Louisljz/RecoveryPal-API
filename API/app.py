@@ -1,16 +1,47 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import StreamingResponse
+from dotenv import load_dotenv
 import uvicorn
 import json
-import base64
 import io
+import os
 
 from clarifai.client.model import Model
 from clarifai.client.input import Inputs
-from dotenv import load_dotenv
 
+import langchain
+from langchain_community.llms import Clarifai
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Pinecone
+from langchain.chains import RetrievalQA
+from langchain import PromptTemplate
+import pinecone
+
+
+langchain.debug = True
 load_dotenv()
+pinecone.init(api_key=os.environ['PINECONE_API_KEY'], environment='gcp-starter')
+vector_store = Pinecone.from_existing_index('meditation', HuggingFaceEmbeddings())
+
+MODEL_URL="https://clarifai.com/openai/chat-completion/models/gpt-4-turbo"
+llm = Clarifai(model_url=MODEL_URL)
+
+chain = RetrievalQA.from_chain_type(llm=llm,
+                                    chain_type="stuff",
+                                    retriever=vector_store.as_retriever())
+
+with open('meditation_prompt.txt', 'r') as f:
+    template = f.read()
+prompt = PromptTemplate(
+    input_variables = ["user_name", "query", "user_age",
+                        "user_gender", "user_struggle",
+                         "user_emotion", "meditation_length"],
+    template=template
+)
+
+
 app = FastAPI()
+
 
 def extract_json(text):
     return text.split('```json')[1].split('```')[0]
@@ -70,6 +101,22 @@ async def text_to_speech(text: str):
     audio_buffer = io.BytesIO(data.audio.base64)
     audio_buffer.seek(0)
     return StreamingResponse(audio_buffer, media_type="audio/mp3")
+
+@app.post('/choose-meditation/')
+async def choose_meditation(name, age, gender, struggle, emotion, duration, theme):
+    user_prompt = prompt.format(
+        user_name = name,
+        query = theme,
+        user_age = age,
+        user_gender = gender,
+        user_struggle = struggle,
+        user_emotion = emotion,
+        meditation_length = duration
+    )
+
+    meditation_script = chain.invoke(user_prompt)
+    return {'meditation_script': meditation_script["result"]}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

@@ -3,3 +3,7 @@ uvicorn
 python-multipart
 python-dotenv
 clarifai
+
+langchain==0.0.350
+pinecone-client==2.2.4
+sentence-transformers
