@@ -11,7 +11,7 @@ from clarifai.client.input import Inputs
 
 import langchain
 from langchain_community.llms import Clarifai
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import Pinecone
 from langchain.chains import RetrievalQA
 from langchain import PromptTemplate
@@ -21,7 +21,7 @@ import pinecone
 langchain.debug = True
 load_dotenv()
 pinecone.init(api_key=os.environ['PINECONE_API_KEY'], environment='gcp-starter')
-vector_store = Pinecone.from_existing_index('meditation', HuggingFaceEmbeddings())
+vector_store = Pinecone.from_existing_index('meditation', OpenAIEmbeddings())
 
 MODEL_URL="https://clarifai.com/openai/chat-completion/models/gpt-4-turbo"
 llm = Clarifai(model_url=MODEL_URL)
