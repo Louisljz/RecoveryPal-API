@@ -42,7 +42,6 @@ prompt = PromptTemplate(
 
 app = FastAPI()
 
-
 def extract_json(text):
     return text.split('```json')[1].split('```')[0]
 
@@ -117,6 +116,22 @@ async def choose_meditation(name, age, gender, struggle, emotion, duration, them
     meditation_script = chain.invoke(user_prompt)
     return {'meditation_script': meditation_script["result"]}
 
+@app.post('/create-image')
+async def create_image(script: str):
+    prompt = f'''
+    Analyze the following meditation script to write a one-sentence DALL-E prompt to generate a 16:9 cover image.
+    {script}
+    '''
+    gpt_model = "https://clarifai.com/openai/chat-completion/models/gpt-4-turbo"
+    gpt_input = Inputs.get_text_input(input_id="", raw_text=prompt)
+    gpt_output = inference(gpt_model, gpt_input)
+    
+    dalle_model = 'https://clarifai.com/openai/dall-e/models/dall-e-3'
+    dalle_input = Inputs.get_text_input(input_id="", raw_text=gpt_output.text.raw)
+    dalle_output = inference(dalle_model, dalle_input)
+
+    image_buffer = io.BytesIO(dalle_output.image.base64)
+    return StreamingResponse(image_buffer, media_type="image/jpeg")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
