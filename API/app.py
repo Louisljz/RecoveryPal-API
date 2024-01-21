@@ -52,12 +52,8 @@ def inference(model_url, inputs, params={}):
 @app.post("/process-feelings")
 async def process_feelings(conversation: str):
     prompt = f'''
-    Your task is to score a mood scale out of 10 from the user feelings. (10 is best mood, 1 is worst mood)
-    If the response isn't satisfactory enough, please ask a follow-up question. 
-    The follow-up question is meant to understand the user feelings better, avoid writing suggestions and don't ask over-detailed questions.
-    Parse your output in json format with two keys: "mood_scale" and "follow_up_question". 
-    Write empty values as null. 
-    {conversation}
+    You are a happiness scorer. Score the happiness of {conversation} from 1 to 10, 1 being not happy at all to 10 being extremely happy. 
+    If you cannot score happiness, ask a noninvasive question to get a better description. If you are able to give a score, then only provide the score out of 10. 
     '''
     model_url = "https://clarifai.com/openai/chat-completion/models/gpt-4-turbo"
     inputs = Inputs.get_text_input(input_id="", raw_text=prompt)
@@ -68,12 +64,11 @@ async def process_feelings(conversation: str):
 @app.post("/generate-prompts")
 async def generate_prompts(mood: int, conversation: str):
     prompt = f'''
-    The user's mood scale is: {mood}. (10 is best mood, 1 is worst mood)
+    The user's happiness scale is: {mood}. 1 being not happy at all to 10 being extremely happy
     Analyze the following conversation:
     {conversation}
-    Your task is to write suggestions for art drawing, journaling and meditation. 
-    Each suggestion should just be one short sentence. 
-    Furthermore, please write 2 daily affirmations.
+    Based on the {mood} and {conversation}: Return a journaling prompt and a short art prompt to help process with emotional processing.
+    Also, provide 2 daily affirmations based on the {mood} and {conversation}
     Parse your output in json format with these keys: "art", "journal", "meditation", "affirmation".
     '''
     model_url = "https://clarifai.com/openai/chat-completion/models/gpt-4-turbo"
@@ -86,7 +81,7 @@ async def generate_prompts(mood: int, conversation: str):
 async def describe_art(file: UploadFile = File(...)):
     image = await file.read()
     model_url = "https://clarifai.com/openai/chat-completion/models/openai-gpt-4-vision"
-    prompt = "Infer the person's feelings from the given drawing. Write in one sentence"
+    prompt = "Describe what the image could be trying to communicate about their emotional state in 1-2 sentences."
     inputs = Inputs.get_multimodal_input(input_id="", image_bytes=image, raw_text=prompt)
     data = inference(model_url, inputs, {'temperature': 0})
     return {'meaning': data.text.raw}
