@@ -13,9 +13,16 @@ import langchain
 from langchain_community.llms import Clarifai
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import Pinecone
-from langchain.chains import RetrievalQA
 from langchain import PromptTemplate
 import pinecone
+
+from tonic_validate import Benchmark, LLMResponse, ValidateScorer, ValidateApi
+
+from tonic_validate.metrics import (
+    RetrievalPrecisionMetric,
+    AugmentationPrecisionMetric,
+    AugmentationAccuracyMetric,
+    AnswerConsistencyMetric)
 
 
 langchain.debug = True
@@ -26,21 +33,26 @@ vector_store = Pinecone.from_existing_index('meditation', OpenAIEmbeddings())
 MODEL_URL="https://clarifai.com/openai/chat-completion/models/gpt-4-turbo"
 llm = Clarifai(model_url=MODEL_URL)
 
-chain = RetrievalQA.from_chain_type(llm=llm,
-                                    chain_type="stuff",
-                                    retriever=vector_store.as_retriever())
-
 with open('meditation_prompt.txt', 'r') as f:
     template = f.read()
 prompt = PromptTemplate(
-    input_variables = ["user_name", "query", "user_age",
+    input_variables = ["user_name", "context", "user_age",
                         "user_gender", "user_struggle", "journal_entry",
-                         "user_emotion", "meditation_length"],
+                         "mood", "meditation_length"],
     template=template
 )
 
+scorer = ValidateScorer([
+    AnswerConsistencyMetric(),
+    AugmentationAccuracyMetric(),
+    AugmentationPrecisionMetric(),
+    RetrievalPrecisionMetric()
+], model_evaluator='gpt-3.5-turbo')
+
+validate_api = ValidateApi(os.environ['TONIC_API_KEY'])
 
 app = FastAPI()
+
 
 def extract_json(text):
     return text.split('```json')[1].split('```')[0]
@@ -57,7 +69,7 @@ async def process_feelings(conversation: str):
     '''
     model_url = "https://clarifai.com/openai/chat-completion/models/gpt-4-turbo"
     inputs = Inputs.get_text_input(input_id="", raw_text=prompt)
-    response = inference(model_url, inputs, {'temperature': 0})
+    response = inference(model_url, inputs)
     data = json.loads(extract_json(response.text.raw))
     return data
 
@@ -73,7 +85,7 @@ async def generate_prompts(mood: int, conversation: str):
     '''
     model_url = "https://clarifai.com/openai/chat-completion/models/gpt-4-turbo"
     inputs = Inputs.get_text_input(input_id="", raw_text=prompt)
-    response = inference(model_url, inputs, {'temperature': 0})
+    response = inference(model_url, inputs)
     data = json.loads(extract_json(response.text.raw))
     return data
 
@@ -83,39 +95,56 @@ async def describe_art(file: UploadFile = File(...)):
     model_url = "https://clarifai.com/openai/chat-completion/models/openai-gpt-4-vision"
     prompt = "Describe what the image could be trying to communicate about their emotional state in 1-2 sentences."
     inputs = Inputs.get_multimodal_input(input_id="", image_bytes=image, raw_text=prompt)
-    data = inference(model_url, inputs, {'temperature': 0})
+    data = inference(model_url, inputs)
     return {'meaning': data.text.raw}
 
 @app.post("/text-to-speech/")
 async def text_to_speech(text: str):
     model_url = 'https://clarifai.com/openai/tts/models/openai-tts-1'
     inputs = Inputs.get_text_input(input_id="", raw_text=text)
-    data = inference(model_url, inputs, {'voice': 'shimmer', 'speed': 1})
+    data = inference(model_url, inputs, {'voice': 'shimmer', 'speed': 0.6})
 
     audio_buffer = io.BytesIO(data.audio.base64)
     audio_buffer.seek(0)
     return StreamingResponse(audio_buffer, media_type="audio/mp3")
 
 @app.post('/choose-meditation/')
-async def choose_meditation(name, age, gender, struggle, emotion, duration, theme):
+async def choose_meditation(name, age, gender, struggle, journal_entry, mood, duration, theme):
+    query = 'Write a personalized meditation script related to ' + theme
+    documents = vector_store.similarity_search(query)
+    doc_strings = [doc.page_content for doc in documents]
+    
     user_prompt = prompt.format(
         user_name = name,
-        query = theme,
+        context = '\n'.join(doc_strings),
         user_age = age,
         user_gender = gender,
         user_struggle = struggle,
         journal_entry = journal_entry,
-        user_emotion = emotion,
+        mood = mood,
         meditation_length = duration
     )
 
-    meditation_script = chain.invoke(user_prompt)
-    return {'meditation_script': meditation_script["result"]}
+    script = llm(user_prompt)
+    benchmark = Benchmark(
+        questions=[query]
+    )
+    print(benchmark.items[0])
+    response = LLMResponse(
+        llm_answer=script,
+        llm_context_list=doc_strings,
+        benchmark_item=benchmark.items[0]
+    )
+
+    run = scorer.score_run([response])
+    validate_api.upload_run(os.environ['TONIC_PROJECT_ID'], run)
+    
+    return {'meditation_script': script}
 
 @app.post('/create-image')
 async def create_image(script: str):
     prompt = f'''
-    Analyze the following meditation script to write a one-sentence DALL-E prompt to generate a 16:9 cover image.
+    Analyze the following meditation script to write a one-sentence DALL-E prompt to generate a cover image.
     {script}
     '''
     gpt_model = "https://clarifai.com/openai/chat-completion/models/gpt-4-turbo"
@@ -124,7 +153,7 @@ async def create_image(script: str):
     
     dalle_model = 'https://clarifai.com/openai/dall-e/models/dall-e-3'
     dalle_input = Inputs.get_text_input(input_id="", raw_text=gpt_output.text.raw)
-    dalle_output = inference(dalle_model, dalle_input)
+    dalle_output = inference(dalle_model, dalle_input, {'size': '512x512'})
 
     image_buffer = io.BytesIO(dalle_output.image.base64)
     return StreamingResponse(image_buffer, media_type="image/jpeg")
