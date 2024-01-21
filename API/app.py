@@ -104,6 +104,7 @@ async def choose_meditation(name, age, gender, struggle, emotion, duration, them
         user_age = age,
         user_gender = gender,
         user_struggle = struggle,
+        journal_entry = journal_entry,
         user_emotion = emotion,
         meditation_length = duration
     )
