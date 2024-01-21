@@ -34,7 +34,7 @@ with open('meditation_prompt.txt', 'r') as f:
     template = f.read()
 prompt = PromptTemplate(
     input_variables = ["user_name", "query", "user_age",
-                        "user_gender", "user_struggle",
+                        "user_gender", "user_struggle", "journal_entry",
                          "user_emotion", "meditation_length"],
     template=template
 )
