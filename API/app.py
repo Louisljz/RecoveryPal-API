@@ -129,7 +129,7 @@ async def create_image(script: str):
     
     dalle_model = 'https://clarifai.com/openai/dall-e/models/dall-e-3'
     dalle_input = Inputs.get_text_input(input_id="", raw_text=gpt_output.text.raw)
-    dalle_output = inference(dalle_model, dalle_input)
+    dalle_output = inference(dalle_model, dalle_input, {'size': '1792x1024'})
 
     image_buffer = io.BytesIO(dalle_output.image.base64)
     return StreamingResponse(image_buffer, media_type="image/jpeg")
