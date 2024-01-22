@@ -1,4 +1,4 @@
-#RecoveryPal 
+##RecoveryPal 
 
 RecoverPal is an innovative mobile application designed to provide crucial support for individuals on the journey of addiction recovery. 
 The app aims to make this challenging process more manageable by offering personalized features and a supportive community. 
