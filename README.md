@@ -4,12 +4,7 @@ This app was developed for NextGen GPT AI Hackathon with Clarifai hosted by Labl
 ## Table of Contents
 - [Introduction](#introduction)
 - [API Documentation](#api-documentation)
-  - [Dockerfile](#dockerfile)
-  - [app.py](#apppy)
-  - [clarifai_models.py](#clarifaimodelspy)
-  - [meditation_prompt.txt](#meditationprompttxt)
-  - [rag-pipeline.ipynb](#ragpipelineipynb)
-  - [test_api.py](#testapipy)
+- [App Features] 
 - [Testing](#testing)
 - [Contributing](#contributing)
 - [License](#license)
@@ -36,6 +31,17 @@ The clarifai_models.py file includes code for using Clarifai models for image de
 
 rag-pipeline.ipynb
 The rag-pipeline.ipynb Jupyter notebook demonstrates the use of LangChain, Clarifai, OpenAIEmbeddings, and Pinecone to create a retrieval-based question-answering pipeline. It includes an example template for generating a meditation script.
+## App Features
+**Emotional Check-In**
+RecoverPal facilitates a daily emotional check-in, allowing users to monitor and track their emotional state over time. This feature provides valuable insights into the user's well-being throughout their recovery journey. Regular check-ins foster self-awareness, helping individuals identify triggers and patterns associated with their addiction. By understanding their emotional landscape, users can proactively manage stressors and maintain emotional balance.
+**Customized Affirmations**
+The app utilizes OpenAI GPT-4 Turbo to generate personalized affirmations on a daily basis, tailored to each user's unique needs and progress in recovery. Affirmations play a crucial role in building and reinforcing positive self-perceptions. For individuals recovering from addiction, these affirmations serve as empowering reminders of their strengths, fostering a positive mindset and resilience in the face of challenges.
+**Journaling**
+RecoverPal encourages users to journal their thoughts and emotions. For newcomers to journaling, the app employs GPT-4 Turbo to offer custom prompts, guiding users in their self-reflection and emotional processing. Journaling provides an outlet for users to express their thoughts and feelings in a safe space. This reflective practice aids in uncovering underlying emotions and triggers, promoting self-discovery and helping individuals make informed decisions on their recovery journey.
+**Art Integration**
+Recognizing the therapeutic power of art, RecoverPal allows users to submit their own pieces or draw on the whiteboard. GPT-4 Vision processes and interprets user-submitted art, providing an additional layer of emotional understanding. Expressing emotions through art can be particularly impactful for individuals in recovery, offering a non-verbal means of communication. The interpretation of art submissions adds an extra dimension to self-reflection, aiding users in gaining insights into their emotional states.
+**Customized Meditation**
+Users can select a meditation theme and create a personalized meditation based on their emotional state, journal entries, gender, age, and specific struggles. The meditation is then delivered through Clarifai Text-to-Speech for a tailored and soothing experience. Meditation serves as a valuable tool for individuals in recovery, promoting relaxation, mindfulness, and stress reduction. By customizing meditations based on individual inputs, RecoverPal provides a targeted approach to address specific challenges, offering users a supportive and calming practice to integrate into their daily routines.
 
 ## Docker setup
 1. `docker build -t gcr.io/recovery-pal/api:latest .`
