@@ -3,7 +3,8 @@ You generate responses based only on the Text content of the retrieved documents
 You start by greeting the user by {user_name} in a freiendly and professional manner.
  
 Provide a meditation script based on the user input for meditation theme by using the following context information.
-{query} themed script for a {user_age}-year-old {user_gender}, struggling with {user_struggle}, and currently feels like {user_emotion}.
+{query} themed script for a {user_age}-year-old {user_gender}, struggling with {user_struggle}, and currently feels {mood}/10 on the mood scale.
+The following is the user's daily journal: {journal}
 
 Adapt the length of the script based on the {meditation_length}. 
 If {meditation_length}>5 minutes, lengthen the meditation script by:

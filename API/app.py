@@ -35,7 +35,7 @@ with open('meditation_prompt.txt', 'r') as f:
 prompt = PromptTemplate(
     input_variables = ["user_name", "query", "user_age",
                         "user_gender", "user_struggle",
-                         "user_emotion", "meditation_length"],
+                         "mood", "meditation_length", 'journal'],
     template=template
 )
 
@@ -95,21 +95,22 @@ async def describe_art(file: UploadFile = File(...)):
 async def text_to_speech(text: str):
     model_url = 'https://clarifai.com/openai/tts/models/openai-tts-1'
     inputs = Inputs.get_text_input(input_id="", raw_text=text)
-    data = inference(model_url, inputs, {'voice': 'shimmer', 'speed': 1})
+    data = inference(model_url, inputs, {'voice': 'shimmer', 'speed': 0.7})
 
     audio_buffer = io.BytesIO(data.audio.base64)
     audio_buffer.seek(0)
     return StreamingResponse(audio_buffer, media_type="audio/mp3")
 
 @app.post('/choose-meditation/')
-async def choose_meditation(name, age, gender, struggle, emotion, duration, theme):
+async def choose_meditation(name, age, gender, struggle, mood, duration, theme, journal):
     user_prompt = prompt.format(
         user_name = name,
         query = theme,
         user_age = age,
         user_gender = gender,
         user_struggle = struggle,
-        user_emotion = emotion,
+        mood = mood,
+        journal = journal,
         meditation_length = duration
     )
 
