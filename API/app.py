@@ -95,7 +95,7 @@ async def describe_art(file: UploadFile = File(...)):
 async def text_to_speech(text: str):
     model_url = 'https://clarifai.com/openai/tts/models/openai-tts-1'
     inputs = Inputs.get_text_input(input_id="", raw_text=text)
-    data = inference(model_url, inputs, {'voice': 'shimmer', 'speed': 0.7})
+    data = inference(model_url, inputs, {'voice': 'shimmer', 'speed': 0.9})
 
     audio_buffer = io.BytesIO(data.audio.base64)
     audio_buffer.seek(0)
