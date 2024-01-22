@@ -6,7 +6,7 @@ This app was developed for NextGen GPT AI Hackathon with Clarifai hosted by Labl
 - [API Documentation](#api-documentation)
   - [Dockerfile](#dockerfile)
   - [app.py](#apppy)
-  - [[clarifai_models.py](https://github.com/Louisljz/RecoveryPal-API/blob/main/clarifai_models.py)](#clarifaimodelspy)
+    clarifai_models.py (https://github.com/Louisljz/RecoveryPal-API/blob/main/clarifai_models.py)
   - [meditation_prompt.txt](#meditationprompttxt)
   - [rag-pipeline.ipynb](#ragpipelineipynb)
   - [test_api.py](#testapipy)
