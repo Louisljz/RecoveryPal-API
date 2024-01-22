@@ -4,7 +4,7 @@ This app was developed for NextGen GPT AI Hackathon with Clarifai hosted by Labl
 ## Table of Contents
 - [Introduction](#introduction)
 - [API Documentation](#api-documentation)
-- [App Features] 
+- [App Features](#appfeatures)
 - [Testing](#testing)
 - [Contributing](#contributing)
 - [License](#license)
