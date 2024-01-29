@@ -1,5 +1,6 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import uvicorn
 import json
@@ -41,6 +42,11 @@ prompt = PromptTemplate(
 
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_methods=['POST'],
+)
 
 def extract_json(text):
     return text.split('```json')[1].split('```')[0]
