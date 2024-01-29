@@ -1,4 +1,4 @@
-## RecoveryPal 
+## RecoveryPal .
 This app was developed for NextGen GPT AI Hackathon with Clarifai hosted by Lablab.ai
 
 ## Table of Contents
